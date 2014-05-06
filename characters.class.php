@@ -6,57 +6,39 @@ March 2013
 class Characters {
 	/* Properties */
 	
-	// (default) shuffle
+	// enable/disable
 	private $shuffle = true;
+	private $lowercase = true;
+	private $uppercase = true;
+	private $numbers = true;
+	private $specialcharacters = true;
 	
-	// (default) enable/disable
-	private $lcase = true;
-	private $ucase = true;
-	private $number = true;
-	private $special = true;
-	
-	// (default) counts
-	private $lcase_count = 1;
-	private $ucase_count = 1;
+	// counts
+	private $lowercase_count = 1;
+	private $uppercase_count = 1;
 	private $number_count = 1;
-	private $special_count = 1;
+	private $specialcharacter_count = 1;
 	
-	// default pools
-	private $default_alphabet = Array();
-	private $default_integers = Array();
-	private $default_characters = Array();
-	
-	// working pools
-	private $alphabet = Array();
-	private $integers = Array();
-	private $characters = Array();
+	// pools
+	private $alphabet_pool = Array();
+	private $number_pool = Array();
+	private $specialcharacter_pool = Array();
 	
 	/* Public Methods */
 	
-	// void __construct()
+	// void __construct(mixed options)
 	public function __construct($options = false) {
-		// define default alphabet pool
-		$this->default_alphabet = range('a','z');
+		// default alphabet pool
+		if(!isset($options['alphabet_pool'])) $this->alphabet_pool = range('a','z');
 		
-		// define default number pool
-		$this->default_integers = range(0,9);
+		// default number pool
+		if(!isset($options['number_pool'])) $this->number_pool = range(0,9);
 		
-		// define default special character pool
-		$ascii = array_merge(range(32,47), range(58,54), range(91,96), range(123,126));
-		foreach($ascii as $code) {
-			$this->default_characters[] = chr($code);
-		}
-		unset($ascii);
+		// default special character pool
+		if(!isset($options['specialcharacter_pool'])) foreach(array_merge(range(32,47), range(58,54), range(91,96), range(123,126)) as $code) $this->specialcharacters_pool[] = chr($code);
 		
-		if($options && is_array($options)) {
-			// options have been passed
-			self::SetOptions($options);
-		} else {
-			// set working pools
-			$this->alphabet = $this->default_alphabet;
-			$this->integers = $this->default_integers;
-			$this->characters = $this->default_characters;
-		}
+		// set options if provided
+		if($options) self::SetOptions($options);
 	}
 	
 	// string Generate()
@@ -64,134 +46,130 @@ class Characters {
 		// an array to hold our parts
 		$parts = Array();
 		
-		// lowercase letter
-		if($this->lcase) {
-			if(!empty($this->alphabet)) {
-				for($i=0; $i<$this->lcase_count; $i++) {
-					$parts[] = strtolower($this->alphabet[array_rand($this->alphabet, 1)]);
-				}
-			} else {
-				die('Invalid alphabet pool.');
+		// lowercase letter(s)
+		if($this->lowercase && !empty($this->alphabet_pool)) {
+			for($i=0; $i<$this->lowercase_count; $i++) {
+				$parts[] = strtolower($this->alphabet_pool[array_rand($this->alphabet_pool, 1)]);
 			}
 		}
 
-		// uppercase letter
-		if($this->ucase) {
-			if(!empty($this->alphabet)) {
-				for($i=0; $i<$this->ucase_count; $i++) {
-					$parts[] = strtoupper($this->alphabet[array_rand($this->alphabet, 1)]);
-				}
-			} else {
-				die('Invalid alphabet pool.');
+		// uppercase letter(s)
+		if($this->uppercase && !empty($this->alphabet_pool)) {
+			for($i=0; $i<$this->uppercase_count; $i++) {
+				$parts[] = strtoupper($this->alphabet_pool[array_rand($this->alphabet_pool, 1)]);
 			}
 		}
 
-		// number
-		if($this->number) {
-			if(!empty($this->integers)) {
-				for($i=0; $i<$this->number_count; $i++) {
-					$parts[] = (string) $this->integers[array_rand($this->integers, 1)];
-				}
-			} else {
-				die('Invalid integer pool.');
+		// number(s)
+		if($this->numbers && !empty($this->number_pool)) {
+			for($i=0; $i<$this->number_count; $i++) {
+				$parts[] = (string) $this->number_pool[array_rand($this->number_pool, 1)];
 			}
 		}
 
-		// special characters
-		if($this->special) {
-			if(!empty($this->characters)) {
-				for($i=0; $i<$this->special_count; $i++) {
-					$parts[] = $this->characters[array_rand($this->characters, 1)];
-				}
-			} else {
-				die('Invalid characters pool.');
+		// special character(s)
+		if($this->specialcharacters && !empty($this->specialcharacters_pool)) {
+			for($i=0; $i<$this->specialcharacter_count; $i++) {
+				$parts[] = $this->specialcharacters_pool[array_rand($this->specialcharacters_pool, 1)];
 			}
 		}
 		
 		// shuffle
-		if($this->shuffle) {
-			shuffle($parts);
-		}
+		if($this->shuffle) shuffle($parts);
 		
 		// return
 		return implode("", $parts);
 	}
 	
-	// bool ToggleLowerCase(bool option)
-	public function ToggleLowerCase($option) {
-		if($option === true) {
-			$this->lcase = true;
-		} else {
-			$this->lcase = false;
-		}
-		return $this->lcase;
+	/* "Enable" methods */
+	
+	// bool EnableShuffle()
+	public function EnableShuffle() {
+		return self::SetShuffle(true);
 	}
 	
-	// bool ToggleUpperCase(bool option)
-	public function ToggleUpperCase($option) {
-		if($option === true) {
-			$this->ucase = true;
-		} else {
-			$this->ucase = false;
-		}
-		return $this->ucase;
+	// bool EnableLowerCase()
+	public function EnableLowerCase() {
+		return self::SetLowerCase(true);
 	}
 	
-	// bool ToggleNumbers(bool option)
-	public function ToggleNumbers($option) {
-		if($option === true) {
-			$this->number = true;
-		} else {
-			$this->number = false;
-		}
-		return $this->number;
+	// bool EnableUpperCase()
+	public function EnableUpperCase() {
+		return self::SetUpperCase(true);
 	}
 	
-	// bool ToggleSpecialCharacters(bool option)
-	public function ToggleSpecialCharacters($option) {
-		if($option === true) {
-			$this->special = true;
-		} else {
-			$this->special = false;
-		}
-		return $this->special;
+	// bool EnableNumbers()
+	public function EnableNumbers() {
+		return self::SetNumbers(true);
 	}
 	
-	// bool SetLowercaseCount(int count)
-	public function SetLowercaseCount($count) {
-		if(is_number($count)) {
-			$this->lcase_count = $count;
-			return true;
-		}
-		return false;
+	// bool EnableSpecialCharacters()
+	public function EnableSpecialCharacters() {
+		return self::SetSpecialCharacters(true);
 	}
 	
-	// int GetLowercaseCount()
-	public function GetLowercaseCount() {
-		return $this->lcase_count;
+	/* "Disable" methods */
+	
+	// bool DisableShuffle()
+	public function DisableShuffle() {
+		return self::SetShuffle(false);
 	}
 	
-	// bool SetUppercaseCount(int count)
-	public function SetUppercaseCount($count) {
-		if(is_number($count)) {
-			$this->ucase_count = $count;
-			return true;
-		}
-		return false;
+	// bool DisableLowerCase()
+	public function DisableLowerCase() {
+		return self::SetLowerCase(false);
 	}
 	
-	// int GetUpperCount()
-	public function GetUppercaseCount() {
-		return $this->ucase_count;
+	// bool DisableUpperCase()
+	public function DisableUpperCase() {
+		return self::SetUpperCase(false);
 	}
 	
-	// bool SetNumbercount(int count)
-	public function SetNumberCount($count) {
-		if(is_number($count)) {
-			$this->number_count = $count;
-			return true;
-		}
-		return false;
+	// bool DisableNumbers()
+	public function DisableNumbers() {
+		return self::SetNumbers(false);
+	}
+	
+	// bool DisableSpecialCharacters()
+	public function DisableSpecialCharacters() {
+		return self::SetSpecialCharacters(false);
+	}
+	
+	/* "Get" methods */
+	
+	// bool GetShuffle()
+	public function GetShuffle() {
+		return $this->shuffle;
+	}
+	
+	// bool GetLowerCase()
+	public function GetLowerCase() {
+		return $this->lowercase;
+	}
+	
+	// bool GetUpperCase()
+	public function GetUpperCase() {
+		return $this->uppercase;
+	}
+	
+	// bool GetNumbers()
+	public function GetNumbers() {
+		return $this->numbers;
+	}
+	
+	// bool GetSpecialCharacters()
+	public function GetSpecialCharacters() {
+		return $this->specialcharacters;
+	}
+	
+	// int GetLowerCaseCount()
+	public function GetLowerCaseCount() {
+		return $this->lowercase_count;
+	}
+	
+	// int GetUpperCaseCount()
+	public function GetUpperCaseCount() {
+		return $this->uppercase_count;
 	}
 	
 	// int GetNumberCount()
@@ -199,63 +177,173 @@ class Characters {
 		return $this->number_count;
 	}
 	
-	// bool SetSpecialCount(int count)
-	public function SetSpecialCount($count) {
-		if(is_number($count)) {
-			$this->special_count = $count;
+	// int GetSpecialCharacterCount()
+	public function GetSpecialCharacterCount() {
+		return $this->specialcharacter_count;
+	}
+	
+	// array GetAlphabetPool()
+	public function GetAlphabetPool() {
+		return $this->alphabet_pool;
+	}
+	
+	// array GetNumberPool()
+	public function GetNumberPool() {
+		return $this->number_pool;
+	}
+	
+	// array GetSpecialCharacterPool()
+	public function GetSpecialCharacterPool() {
+		return $this->specialcharacter_pool;
+	}
+	
+	// array GetOptions()
+	public function GetOptions() {
+		return Array(
+			'shuffle'=>GetShuffle(),
+			'lowercase'=>GetLowerCase(),
+			'uppercase'=>GetUpperCase(),
+			'numbers'=>GetNumbers(),
+			'specialcharacters'=>GetSpecialCharacters(),
+			'lowercase_count'=>GetLowerCaseCount(),
+			'uppercase_count'=>GetUpperCaseCount(),
+			'number_count'=>GetNumberCount(),
+			'specialcharacter_count'=>GetSpecialCharacterCount(),
+			'alphabet_pool'=>GetAlphabetPool(),
+			'number_pool'=>GetNumberPool(),
+			'specialcharacter_pool'=>GetSpecialCharacterPool()
+		);
+	}
+	
+	/* "Set" methods */
+	
+	// bool SetShuffle(bool option)
+	public function SetShuffle($option) {
+		if(is_bool($option)) {
+			$this->shuffle = $option;
 			return true;
 		}
 		return false;
 	}
 	
-	// int GetSpecialCount()
-	public function GetSpecialCount() {
-		return $this->special_count;
+	// bool SetLowerCase(bool option)
+	public function SetLowerCase($option) {
+		if(is_bool($option)) {
+			$this->lowercase = $option;
+			return true;
+		}
+		return false;
 	}
 	
-	/* Private Methods */
+	// bool SetUpperCase(bool option)
+	public function SetUpperCase($option) {
+		if(is_bool($option)) {
+			$this->uppercase = $option;
+			return true;
+		}
+		return false;
+	}
 	
-	// void SetOptions(array options)
-	private function SetOptions($options) {
-		// set shuffle
-		if(isset($options['shuffle']) && is_bool($options['shuffle'])) {
-			$this->shuffle = $options['shuffle'];
+	// bool SetNumbers(bool option)
+	public function SetNumbers($option) {
+		if(is_bool($option)) {
+			$this->numbers = $option;
+			return true;
 		}
-		
-		// set lowercase
-		if(isset($options['lcase']) && is_bool($options['lowercase'])) {
-			$this->lcase = $options['lowercase'];
+		return false;
+	}
+	
+	// bool SetSpecialCharacters(bool option)
+	public function SetSpecialCharacters($option) {
+		if(is_bool($option)) {
+			$this->specialcharacters = $option;
+			return true;
 		}
-		
-		// set uppercase
-		if(isset($options['uppercase']) && is_bool($options['uppercase'])) {
-			$this->ucase = $options['uppercase'];
+		return false;
+	}
+	
+	// bool SetLowerCaseCount(int count)
+	public function SetLowerCaseCount($count) {
+		if(is_numeric($count) && $count >= 0) {
+			$this->lowercase_count = $count;
+			return true;
 		}
-		
-		// set number
-		if(isset($options['number']) && is_bool($options['number'])) {
-			$this->number = $options['number'];
+		return false;
+	}
+	
+	// bool SetUpperCaseCount(int count)
+	public function SetUpperCaseCount($count) {
+		if(is_numeric($count) && $count >= 0) {
+			$this->uppercase_count = $count;
+			return true;
 		}
-		
-		// set special
-		if(isset($options['special']) && is_bool($options['special'])) {
-			$this->special = $options['special'];
+		return false;
+	}
+	
+	// bool SetNumberCount(int count)
+	public function SetNumberCount($count) {
+		if(is_numeric($count) && $count >= 0) {
+			$this->number_count = $count;
+			return true;
 		}
-		
-		// define alphabet
-		if(isset($options['alphabet']) && is_array($options['alphabet'])) {
-			$this->alphabet = $options['alphabet'];
+		return false;
+	}
+	
+	// bool SetSpecialCharacterCount(int count)
+	public function SetSpecialCharacterCount($count) {
+		if(is_numeric($count) && $count >= 0) {
+			$this->specialcharacter_count = $count;
+			return true;
 		}
-		
-		// define integers
-		if(isset($options['integers']) && is_array($options['integers'])) {
-			$this->integers = $options['integers'];
+		return false;
+	}
+	
+	// bool SetAlphabetPool(array alphabet)
+	public function SetAlphabetPool($alphabet) {
+		if(is_array($alphabet)) {
+			$this->alphabet_pool = $alphabet;
+			return true;
 		}
-		
-		// define special characters
-		if(isset($options['characters']) && is_array($options['characters'])) {
-			$this->characters = $options['characters'];
+		return false;
+	}
+	
+	// bool SetNumberPool(array numbers)
+	public function SetNumberPool($numbers) {
+		if(is_array($numbers)) {
+			$this->number_pool = $numbers;
+			return true;
 		}
+		return false;
+	}
+	
+	// bool SetSpecialCharacterPool(array characters)
+	public function SetSpecialCharacterPool($characters) {
+		if(is_array($characters)) {
+			$this->specialcharacter_pool = $characters;
+			return true;
+		}
+		return false;
+	}
+	
+	// bool SetOptions(array options)
+	public function SetOptions($options) {
+		if(is_array($options)) {
+			$results = Array();
+			if(isset($options['shuffle'])) $results[] = self::SetShuffle($options['shuffle']);
+			if(isset($options['lowercase'])) $results[] = self::SetLowerCase($options['lowercase']);
+			if(isset($options['uppercase'])) $results[] = self::SetUpperCase($options['uppercase']);
+			if(isset($options['numbers'])) $results[] = self::SetNumbers($options['numbers']);
+			if(isset($options['specialcharacters'])) $results[] = self::SetSpecialCharacters($options['specialcharacters']);
+			if(isset($options['lowercase_count'])) $results[] = self::SetLowerCaseCount($options['lowercase_count']);
+			if(isset($options['uppercase_count'])) $results[] = self::SetUpperCaseCount($options['uppercase_count']);
+			if(isset($options['number_count'])) $results[] = self::SetNumberCount($options['number_count']);
+			if(isset($options['specialcharacters_count'])) $results[] = self::SetSpecialCharacterCount($options['specialcharacter_count']);
+			if(isset($options['alphabet_pool'])) $results[] = self::SetAlphabetPool($options['alphabet_pool']);
+			if(isset($options['number_pool'])) $results[] = self::SetNumberPool($options['number_pool']);
+			if(isset($options['specialcharacter_pool'])) $results[] = self::SetSpecialCharacterPool($options['specialcharacter_pool']);
+			return !(in_array(false, $results, true));
+		}
+		return false;
 	}
 }
 ?>
