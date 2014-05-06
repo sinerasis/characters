@@ -21,7 +21,12 @@ class Characters {
 	private $number_count = 1;
 	private $special_count = 1;
 	
-	// pools
+	// default pools
+	private $default_alphabet = Array();
+	private $default_integers = Array();
+	private $default_characters = Array();
+	
+	// working pools
 	private $alphabet = Array();
 	private $integers = Array();
 	private $characters = Array();
@@ -30,20 +35,27 @@ class Characters {
 	
 	// void __construct()
 	public function __construct($options = false) {
+		// define default alphabet pool
+		$this->default_alphabet = range('a','z');
+		
+		// define default number pool
+		$this->default_integers = range(0,9);
+		
+		// define default special character pool
+		$ascii = array_merge(range(32,47), range(58,54), range(91,96), range(123,126));
+		foreach($ascii as $code) {
+			$this->default_characters[] = chr($code);
+		}
+		unset($ascii);
+		
 		if($options && is_array($options)) {
+			// options have been passed
 			self::SetOptions($options);
 		} else {
-			// (default) alphabet
-			$this->alphabet = range('a','z');
-			
-			// (default) integers
-			$this->integers = range(0,9);
-			
-			// (default) "special" characters
-			$special_ascii = array_merge(range(32,47), range(58,54), range(91,96), range(123,126));
-			foreach($special_ascii as $code) {
-				$this->characters[] = chr($code);
-			}
+			// set working pools
+			$this->alphabet = $this->default_alphabet;
+			$this->integers = $this->default_integers;
+			$this->characters = $this->default_characters;
 		}
 	}
 	
@@ -54,29 +66,45 @@ class Characters {
 		
 		// lowercase letter
 		if($this->lcase) {
-			for($i=0; $i<$this->lcase_count; $i++) {
-				$parts[] = strtolower($this->alphabet[array_rand($this->alphabet, 1)]);
+			if(!empty($this->alphabet)) {
+				for($i=0; $i<$this->lcase_count; $i++) {
+					$parts[] = strtolower($this->alphabet[array_rand($this->alphabet, 1)]);
+				}
+			} else {
+				die('Invalid alphabet pool.');
 			}
 		}
 
 		// uppercase letter
 		if($this->ucase) {
-			for($i=0; $i<$this->ucase_count; $i++) {
-				$parts[] = strtoupper($this->alphabet[array_rand($this->alphabet, 1)]);
+			if(!empty($this->alphabet)) {
+				for($i=0; $i<$this->ucase_count; $i++) {
+					$parts[] = strtoupper($this->alphabet[array_rand($this->alphabet, 1)]);
+				}
+			} else {
+				die('Invalid alphabet pool.');
 			}
 		}
 
 		// number
 		if($this->number) {
-			for($i=0; $i<$this->number_count; $i++) {
-				$parts[] = (string) $this->integers[array_rand($this->integers, 1)];
+			if(!empty($this->integers)) {
+				for($i=0; $i<$this->number_count; $i++) {
+					$parts[] = (string) $this->integers[array_rand($this->integers, 1)];
+				}
+			} else {
+				die('Invalid integer pool.');
 			}
 		}
 
 		// special characters
 		if($this->special) {
-			for($i=0; $i<$this->special_count; $i++) {
-				$parts[] = $this->characters[array_rand($this->characters, 1)];
+			if(!empty($this->characters)) {
+				for($i=0; $i<$this->special_count; $i++) {
+					$parts[] = $this->characters[array_rand($this->characters, 1)];
+				}
+			} else {
+				die('Invalid characters pool.');
 			}
 		}
 		
@@ -89,44 +117,44 @@ class Characters {
 		return implode("", $parts);
 	}
 	
-	// void EnableLowercase()
-	public function EnableLowercase() {
-		$this->lcase = true;
+	// bool ToggleLowerCase(bool option)
+	public function ToggleLowerCase($option) {
+		if($option === true) {
+			$this->lcase = true;
+		} else {
+			$this->lcase = false;
+		}
+		return $this->lcase;
 	}
 	
-	// void DisableLowercase()
-	public function DisableLowercase() {
-		$this->lcase = false;
+	// bool ToggleUpperCase(bool option)
+	public function ToggleUpperCase($option) {
+		if($option === true) {
+			$this->ucase = true;
+		} else {
+			$this->ucase = false;
+		}
+		return $this->ucase;
 	}
 	
-	// void EnableUppercase()
-	public function EnableUppercase() {
-		$this->ucase = true;
+	// bool ToggleNumbers(bool option)
+	public function ToggleNumbers($option) {
+		if($option === true) {
+			$this->number = true;
+		} else {
+			$this->number = false;
+		}
+		return $this->number;
 	}
 	
-	// void DisableUppercase()
-	public function DisableUppercase() {
-		$this->ucase = false;
-	}
-	
-	// void EnableNumbers()
-	public function EnableNumbers() {
-		$this->number = true;
-	}
-	
-	// void DisableNumbers()
-	public function DisableNumbers() {
-		$this->number = false;
-	}
-	
-	// void EnableSpecialCharacters()
-	public function EnableSpecialCharacters() {
-		$this->special = true;
-	}
-	
-	// void DisableSpecialCharacters()
-	public function DisableSpecialCharacters() {
-		$this->special = false;
+	// bool ToggleSpecialCharacters(bool option)
+	public function ToggleSpecialCharacters($option) {
+		if($option === true) {
+			$this->special = true;
+		} else {
+			$this->special = false;
+		}
+		return $this->special;
 	}
 	
 	// bool SetLowercaseCount(int count)
@@ -191,7 +219,7 @@ class Characters {
 	private function SetOptions($options) {
 		// set shuffle
 		if(isset($options['shuffle']) && is_bool($options['shuffle'])) {
-			$this->scrable = $options['shuffle'];
+			$this->shuffle = $options['shuffle'];
 		}
 		
 		// set lowercase
